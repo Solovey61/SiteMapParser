@@ -4,10 +4,12 @@ import java.net.URI;
 import java.util.concurrent.ForkJoinPool;
 
 public class Main {
+	private static final int THREADS_COUNT = Runtime.getRuntime().availableProcessors() * 2;
+
 	public static void main(String[] args) {
 		URI rootLinkAddress = UI.getURIToParse("Type URI of the site you'd like to parse");
 		Link rootLink = new Link(rootLinkAddress, null);
-		new ForkJoinPool().invoke(new LinkAction(rootLink));
+		new ForkJoinPool(THREADS_COUNT).invoke(new LinkAction(rootLink));
 		if (rootLink.getChildren().size() > 0) {
 			UI.println("Successfully parsed");
 			while (true) {

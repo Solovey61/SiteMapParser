@@ -3,16 +3,13 @@ import org.jsoup.select.Elements;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.RecursiveAction;
 
 class LinkAction extends RecursiveAction {
-	private static final int TIME_MILLIS_TO_SLEEP = 100;
+	private static final int TIME_MILLIS_TO_SLEEP = 40;
 
-	private static TreeSet<URI> visited = new TreeSet<>();
+	private static SortedSet<URI> visited = Collections.synchronizedSortedSet(new TreeSet<>());
 	private Link link;
 
 	public LinkAction(Link link) {
@@ -21,7 +18,7 @@ class LinkAction extends RecursiveAction {
 			visited.add(link.getUri());
 	}
 
-	public static TreeSet<URI> getVisited() {
+	public static SortedSet<URI> getVisited() {
 		return visited;
 	}
 
@@ -53,14 +50,14 @@ class LinkAction extends RecursiveAction {
 					href = link.getUri().resolve(href);
 				if (!href.isOpaque() && !href.toString().contains("#")) {
 					try {
+//						Little trick to exclude parameters from URI
 						href = new URI(href.getScheme(), href.getAuthority(), href.getPath().replaceAll("/+$", ""),
-								null,
-								href.getFragment());
+								null, href.getFragment());
 					} catch (URISyntaxException ignored) {
 					}
-					if (!isVisited(href)
-							&& href.getHost().equals(link.getUri().getHost())
+					if (href.getHost().equals(link.getUri().getHost())
 							&& href.getScheme().equals(link.getUri().getScheme())
+							&& !isVisited(href)
 					) {
 						visited.add(href);
 						link.addChild(href, link);
